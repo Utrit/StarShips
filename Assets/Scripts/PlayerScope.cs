@@ -10,14 +10,15 @@ public class PlayerScope : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
+        Debug.Log(IsOwner);
         if (IsOwner)
         {
             _playerCamera = Camera.main;
             _playerCamera.transform.SetParent(transform);
-            _playerCamera.transform.localPosition = new Vector3(0, 1, -5);
+            _playerCamera.transform.localPosition = new Vector3(0, 2.5f, -5);
             return;
         }
-        Destroy(this);
+        enabled = false;
     }
 
     void Start()
