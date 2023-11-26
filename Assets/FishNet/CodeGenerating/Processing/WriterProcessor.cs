@@ -161,7 +161,7 @@ namespace FishNet.CodeGenerating.Helping
         {
             autoPackMethod = false;
 
-            if (base.GetClass<GeneralHelper>().HasNotSerializableAttribute(methodInfo))
+            if (base.GetClass<GeneralHelper>().CodegenExclude(methodInfo))
                 return true;
             //Not long enough to be a write method.
             else if (methodInfo.Name.Length < WRITE_PREFIX.Length)
@@ -768,7 +768,8 @@ namespace FishNet.CodeGenerating.Helping
                     methodRefResult = CreateEnumWriterMethodDefinition(objectTr);
                 //Dictionary, List, ListCache
                 else if (serializerType == SerializerType.Dictionary
-                    || serializerType == SerializerType.List)
+                    || serializerType == SerializerType.List
+                    || serializerType == SerializerType.ListCache)
                     methodRefResult = CreateGenericCollectionWriterMethodReference(objectTr, serializerType);
                 //NetworkBehaviour.
                 else if (serializerType == SerializerType.NetworkBehaviour)
@@ -1109,6 +1110,8 @@ namespace FishNet.CodeGenerating.Helping
                 instancedWriteMr = wi.Writer_WriteDictionary_MethodRef;
             else if (st == SerializerType.List)
                 instancedWriteMr = wi.Writer_WriteList_MethodRef;
+            else if (st == SerializerType.ListCache)
+                instancedWriteMr = wi.Writer_WriteListCache_MethodRef;
             else
                 instancedWriteMr = null;
 

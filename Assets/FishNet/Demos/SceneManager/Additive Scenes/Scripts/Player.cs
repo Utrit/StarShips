@@ -49,7 +49,7 @@ namespace FishNet.Demo.AdditiveScenes
         private void Update()
         {
             //Not server or not setup.
-            if (!base.IsServerStarted)
+            if (!base.IsServer)
                 return;
             if (_wayPoints.Count == 0)
                 return;

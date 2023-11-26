@@ -69,7 +69,7 @@ namespace FishNet.Authenticating
         /// </summary>
         /// <param name="conn">Connection sending broadcast.</param>
         /// <param name="hpb"></param>
-        private void OnHostPasswordBroadcast(NetworkConnection conn, HostPasswordBroadcast hpb, Channel channel)
+        private void OnHostPasswordBroadcast(NetworkConnection conn, HostPasswordBroadcast hpb)
         {
             //Not accepting host authentications. This could be an attack.
             if (!_allowHostAuthentication)

@@ -128,7 +128,7 @@ namespace FishNet.Example.Prediction.Transforms
                  * automatically determine how to send the data, and run the logic. */
                 Move(md, false);
             }
-            if (base.IsServerStarted)
+            if (base.IsServer)
             {
                 /* Move using default data with true for asServer.
                  * The server will use stored data from the client automatically.

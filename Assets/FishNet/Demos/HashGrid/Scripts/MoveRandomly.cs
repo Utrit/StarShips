@@ -21,7 +21,7 @@ namespace FishNet.Demo.HashGrid
 
         private void Update()
         {
-            if (!base.IsOwner && !base.IsServerStarted)
+            if (!base.IsOwner && !base.IsServer)
                 return;
 
             transform.position = Vector3.MoveTowards(transform.position, _goal, (_moveRate * Time.deltaTime));
@@ -30,7 +30,7 @@ namespace FishNet.Demo.HashGrid
         }
 
         public override void OnStartNetwork()
-        {
+        {            
             _start = transform.position;
 
             if (base.Owner.IsLocalClient)
@@ -40,7 +40,6 @@ namespace FishNet.Demo.HashGrid
                 transform.position -= new Vector3(0f, 0f, 1f);
                 Camera c = Camera.main;
                 c.transform.SetParent(transform);
-                c.transform.localPosition = transform.position - new Vector3(0f, 0f, 5f);
             }
             else
             {
@@ -49,13 +48,6 @@ namespace FishNet.Demo.HashGrid
             }
 
             RandomizeGoal();
-        }
-
-        public override void OnStopNetwork()
-        {
-            Camera c = Camera.main;
-            if (c != null)
-                c.transform.SetParent(null);
         }
 
         private void RandomizeGoal()

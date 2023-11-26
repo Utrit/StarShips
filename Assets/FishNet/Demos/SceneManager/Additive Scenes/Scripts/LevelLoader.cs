@@ -9,7 +9,7 @@ namespace FishNet.Demo.AdditiveScenes
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!base.IsServerStarted)
+            if (!base.IsServer)
                 return;
 
             Player player = GetPlayerOwnedObject(other);
@@ -43,7 +43,7 @@ namespace FishNet.Demo.AdditiveScenes
 
         private void OnTriggerExit(Collider other)
         {
-            if (!base.IsServerStarted)
+            if (!base.IsServer)
                 return;
 
             Player player = GetPlayerOwnedObject(other);

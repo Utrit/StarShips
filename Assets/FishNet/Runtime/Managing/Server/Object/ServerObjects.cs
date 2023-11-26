@@ -11,8 +11,8 @@ using FishNet.Transporting;
 using FishNet.Utility;
 using FishNet.Utility.Extension;
 using FishNet.Utility.Performance;
-using GameKit.Dependencies.Utilities;
-using GameKit.Dependencies.Utilities.Types;
+using GameKit.Utilities;
+using GameKit.Utilities.Types;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -55,9 +55,13 @@ namespace FishNet.Managing.Server
         /// <returns></returns>
         internal Queue<int> GetObjectIdCache() => _objectIdCache;
         /// <summary>
+        /// NetworkBehaviours which have dirty SyncVars.
+        /// </summary>
+        private List<NetworkBehaviour> _dirtySyncVarBehaviours = new List<NetworkBehaviour>(20);
+        /// <summary>
         /// NetworkBehaviours which have dirty SyncObjects.
         /// </summary>
-        private List<NetworkBehaviour> _dirtySyncTypeBehaviours = new List<NetworkBehaviour>(20);
+        private List<NetworkBehaviour> _dirtySyncObjectBehaviours = new List<NetworkBehaviour>(20);
         /// <summary>
         /// Objects which need to be destroyed next tick.
         /// This is needed when running as host so host client will get any final messages for the object before they're destroyed.
@@ -94,7 +98,7 @@ namespace FishNet.Managing.Server
         /// </summary>
         private void TimeManager_OnUpdate()
         {
-            if (!base.NetworkManager.IsServerStarted)
+            if (!base.NetworkManager.IsServer)
             {
                 _scenesLoading = false;
                 _loadedScenes.Clear();
@@ -114,16 +118,21 @@ namespace FishNet.Managing.Server
         /// </summary>
         internal void WriteDirtySyncTypes()
         {
-            List<NetworkBehaviour> collection = _dirtySyncTypeBehaviours;
             /* Tells networkbehaviours to check their
              * dirty synctypes. */
-            for (int i = 0; i < collection.Count; i++)
+            IterateCollection(_dirtySyncVarBehaviours, false);
+            IterateCollection(_dirtySyncObjectBehaviours, true);
+
+            void IterateCollection(List<NetworkBehaviour> collection, bool isSyncObject)
             {
-                bool dirtyCleared = collection[i].WriteDirtySyncTypes();
-                if (dirtyCleared)
+                for (int i = 0; i < collection.Count; i++)
                 {
-                    collection.RemoveAt(i);
-                    i--;
+                    bool dirtyCleared = collection[i].WriteDirtySyncTypes(isSyncObject);
+                    if (dirtyCleared)
+                    {
+                        collection.RemoveAt(i);
+                        i--;
+                    }
                 }
             }
         }
@@ -131,9 +140,12 @@ namespace FishNet.Managing.Server
         /// Sets that a NetworkBehaviour has a dirty syncVars.
         /// </summary>
         /// <param name="nb"></param>
-        internal void SetDirtySyncType(NetworkBehaviour nb)
+        internal void SetDirtySyncType(NetworkBehaviour nb, bool isSyncObject)
         {
-            _dirtySyncTypeBehaviours.Add(nb);
+            if (isSyncObject)
+                _dirtySyncObjectBehaviours.Add(nb);
+            else
+                _dirtySyncVarBehaviours.Add(nb);
         }
         #endregion
 
@@ -367,7 +379,7 @@ namespace FishNet.Managing.Server
             //Store sceneNobs.
             CollectionCaches<NetworkObject>.Store(sceneNobs);
 
-            bool isHost = base.NetworkManager.IsHostStarted;
+            bool isHost = base.NetworkManager.IsHost;
             int nobsCount = cache.Count;
             for (int i = 0; i < nobsCount; i++)
             {
@@ -463,10 +475,9 @@ namespace FishNet.Managing.Server
                 base.NetworkManager.LogWarning($"{networkObject.name} is already spawned.");
                 return;
             }
-            NetworkBehaviour networkBehaviourParent = networkObject.CurrentParentNetworkBehaviour;
-            if (networkBehaviourParent != null && !networkBehaviourParent.IsSpawned)
+            if (networkObject.CurrentParentNetworkObject != null && !networkObject.CurrentParentNetworkObject.IsSpawned)
             {
-                base.NetworkManager.LogError($"{networkObject.name} cannot be spawned because it has a parent NetworkObject {networkBehaviourParent} which is not spawned.");
+                base.NetworkManager.LogError($"{networkObject.name} cannot be spawned because it has a parent NetworkObject {networkObject.CurrentParentNetworkObject} which is not spawned.");
                 return;
             }
             /* If scene is specified make sure the object is root,
@@ -503,7 +514,7 @@ namespace FishNet.Managing.Server
             _spawnCache.Add(networkObject);
             SetupWithoutSynchronization(networkObject, ownerConnection, objectId);
 
-            foreach (NetworkObject item in networkObject.NestedRootNetworkBehaviours)
+            foreach (NetworkObject item in networkObject.ChildNetworkObjects)
             {
                 /* Only spawn recursively if the nob state is unset.
                  * Unset indicates that the nob has not been */
@@ -528,7 +539,7 @@ namespace FishNet.Managing.Server
             int spawnCacheCopyCount = spawnCacheCopy.Count;
             /* If also client then we need to make sure the object renderers have correct visibility.
              * Set visibility based on if the observers contains the clientHost connection. */
-            if (NetworkManager.IsClientStarted)
+            if (NetworkManager.IsClient)
             {
                 int count = spawnCacheCopyCount;
                 for (int i = 0; i < count; i++)
@@ -632,8 +643,12 @@ namespace FishNet.Managing.Server
                 PooledReader syncTypeReader = ReaderPool.Retrieve(syncValues, base.NetworkManager);
                 foreach (NetworkBehaviour nb in nob.NetworkBehaviours)
                 {
+                    //SyncVars.
                     int length = syncTypeReader.ReadInt32();
-                    nb.OnSyncType(syncTypeReader, length, true);
+                    nb.OnSyncType(syncTypeReader, length, false, true);
+                    //SyncObjects
+                    length = syncTypeReader.ReadInt32();
+                    nb.OnSyncType(syncTypeReader, length, true, true);
                 }
                 syncTypeReader.Store();
             }

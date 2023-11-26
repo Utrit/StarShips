@@ -17,12 +17,12 @@ using UnityEngine;
 using SR = System.Reflection;
 
 namespace FishNet.CodeGenerating.Helping
-{
+{ 
     internal class GeneralHelper : CodegenBase
     {
         #region Reflection references.
-        public string ExcludeSerializationAttribute_FullName;
-        public string NotSerializerAttribute_FullName;
+        public string CodegenExcludeAttribute_FullName;
+        public string CodegenIncludeAttribute_FullName;
         public MethodReference Extension_Attribute_Ctor_MethodRef;
         public MethodReference BasicQueue_Clear_MethodRef;
         public TypeReference List_TypeRef;
@@ -90,8 +90,8 @@ namespace FishNet.CodeGenerating.Helping
             ActionT2Constructor_MethodRef = base.ImportReference(typeof(Action<,>).GetConstructors()[0]);
             ActionT3Constructor_MethodRef = base.ImportReference(typeof(Action<,,>).GetConstructors()[0]);
 
-            ExcludeSerializationAttribute_FullName = typeof(ExcludeSerializationAttribute).FullName;
-            NotSerializerAttribute_FullName = typeof(NotSerializerAttribute).FullName;
+            CodegenExcludeAttribute_FullName = typeof(CodegenExcludeAttribute).FullName;
+            CodegenIncludeAttribute_FullName = typeof(CodegenIncludeAttribute).FullName;
 
             tmpType = typeof(BasicQueue<>);
             base.ImportReference(tmpType);
@@ -323,17 +323,16 @@ namespace FishNet.CodeGenerating.Helping
             md.CustomAttributes.Add(ca);
         }
 
-        #region HasExcludeSerializationAttribute
         /// <summary>
         /// Returns if typeDef should be ignored.
         /// </summary>
         /// <param name="typeDef"></param>
         /// <returns></returns>
-        public bool HasExcludeSerializationAttribute(TypeDefinition typeDef)
+        public bool IgnoreTypeDefinition(TypeDefinition typeDef)
         {
             foreach (CustomAttribute item in typeDef.CustomAttributes)
             {
-                if (item.AttributeType.FullName == ExcludeSerializationAttribute_FullName)
+                if (item.AttributeType.FullName == typeof(CodegenExcludeAttribute).FullName)
                     return true;
             }
 
@@ -343,11 +342,11 @@ namespace FishNet.CodeGenerating.Helping
         /// <summary>
         /// Returns if type uses CodegenExcludeAttribute.
         /// </summary>
-        public bool HasExcludeSerializationAttribute(SR.MethodInfo methodInfo)
+        public bool CodegenExclude(SR.MethodInfo methodInfo)
         {
             foreach (SR.CustomAttributeData item in methodInfo.CustomAttributes)
             {
-                if (item.AttributeType.FullName == ExcludeSerializationAttribute_FullName)
+                if (item.AttributeType == typeof(CodegenExcludeAttribute))
                     return true;
             }
 
@@ -357,11 +356,11 @@ namespace FishNet.CodeGenerating.Helping
         /// <summary>
         /// Returns if type uses CodegenExcludeAttribute.
         /// </summary>
-        public bool HasExcludeSerializationAttribute(MethodDefinition methodDef)
+        public bool CodegenExclude(MethodDefinition methodDef)
         {
             foreach (CustomAttribute item in methodDef.CustomAttributes)
             {
-                if (item.AttributeType.FullName == ExcludeSerializationAttribute_FullName)
+                if (item.AttributeType.FullName == CodegenExcludeAttribute_FullName)
                     return true;
             }
 
@@ -371,11 +370,25 @@ namespace FishNet.CodeGenerating.Helping
         /// <summary>
         /// Returns if type uses CodegenExcludeAttribute.
         /// </summary>
-        public bool HasExcludeSerializationAttribute(FieldDefinition fieldDef)
+        public bool CodegenExclude(FieldDefinition fieldDef)
         {
             foreach (CustomAttribute item in fieldDef.CustomAttributes)
             {
-                if (item.AttributeType.FullName == ExcludeSerializationAttribute_FullName)
+                if (item.AttributeType.FullName == CodegenExcludeAttribute_FullName)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns if type uses CodegenIncludeAttribute.
+        /// </summary>
+        public bool CodegenInclude(FieldDefinition fieldDef)
+        {
+            foreach (CustomAttribute item in fieldDef.CustomAttributes)
+            {
+                if (item.AttributeType.FullName == CodegenIncludeAttribute_FullName)
                     return true;
             }
 
@@ -385,47 +398,34 @@ namespace FishNet.CodeGenerating.Helping
         /// <summary>
         /// Returns if type uses CodegenExcludeAttribute.
         /// </summary>
-        public bool HasExcludeSerializationAttribute(PropertyDefinition propDef)
+        public bool CodegenExclude(PropertyDefinition propDef)
         {
             foreach (CustomAttribute item in propDef.CustomAttributes)
             {
-                if (item.AttributeType.FullName == ExcludeSerializationAttribute_FullName)
+                if (item.AttributeType.FullName == CodegenExcludeAttribute_FullName)
                     return true;
             }
 
             return false;
         }
-        #endregion
 
-        #region NotSerializableAttribute
-        /// <summary>
-        /// Returns if type uses CodegenExcludeAttribute.
-        /// </summary>
-        public bool HasNotSerializableAttribute(SR.MethodInfo methodInfo)
-        {
-            foreach (SR.CustomAttributeData item in methodInfo.CustomAttributes)
-            {
-                if (item.AttributeType.FullName == NotSerializerAttribute_FullName)
-                    return true;
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Returns if type uses CodegenExcludeAttribute.
         /// </summary>
-        public bool HasNotSerializableAttribute(MethodDefinition methodDef)
+        public bool CodegenInclude(PropertyDefinition propDef)
         {
-            foreach (CustomAttribute item in methodDef.CustomAttributes)
+            foreach (CustomAttribute item in propDef.CustomAttributes)
             {
-                if (item.AttributeType.FullName == NotSerializerAttribute_FullName)
+                if (item.AttributeType.FullName == CodegenIncludeAttribute_FullName)
                     return true;
             }
 
             return false;
         }
-        #endregion
+
+
+
 
         /// <summary>
         /// Calls copiedMd with the assumption md shares the same parameters.

@@ -1,4 +1,4 @@
-﻿using GameKit.Dependencies.Utilities;
+﻿using GameKit.Utilities;
 using FishNet.Utility.Extension;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -246,7 +246,7 @@ namespace FishNet.Object.Prediction
         {
             if (_networkObject.IsOwner)
                 return false;
-            if (_networkObject.IsServerOnlyStarted || _networkObject.IsHostStarted)
+            if (_networkObject.IsServerOnly || _networkObject.IsHost)
                 return false;
 
             return true;

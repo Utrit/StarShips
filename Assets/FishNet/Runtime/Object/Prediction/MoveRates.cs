@@ -1,5 +1,5 @@
 ﻿
-using GameKit.Dependencies.Utilities;
+using GameKit.Utilities;
 using System.Runtime.CompilerServices;
 
 namespace FishNet.Object.Prediction

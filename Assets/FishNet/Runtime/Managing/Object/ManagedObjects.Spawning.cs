@@ -8,7 +8,7 @@ using FishNet.Object;
 using FishNet.Serializing;
 using FishNet.Transporting;
 using FishNet.Utility.Extension;
-using GameKit.Dependencies.Utilities;
+using GameKit.Utilities;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -71,7 +71,8 @@ namespace FishNet.Managing.Object
             else
                 headerWriter.WriteInt16(-1);
 
-            bool nested = (nob.CurrentParentNetworkBehaviour != null);
+            bool nested = (nob.CurrentParentNetworkObject != null);
+
             bool sceneObject = nob.IsSceneObject;
             //Write type of spawn.
             SpawnType st = SpawnType.Unset;
@@ -89,15 +90,10 @@ namespace FishNet.Managing.Object
             //Properties on the transform which diff from serialized value.
             WriteChangedTransformProperties(nob, sceneObject, nested, headerWriter);
 
-            /* When nested the parent nb needs to be written. */
+            /* When nested the parent nob needs to be written. */
             if (nested)
-            {
-                /* Use Ids because using WriteNetworkBehaviour() will read from spawned
-                 * on the other end. This is problematic because the object which is parent
-                 * may not be spawned yet. Clients handle caching potentially not yet spawned
-                 * objects via Ids. */
-                headerWriter.WriteNetworkObjectId(nob.CurrentParentNetworkBehaviour.ObjectId);
-            }
+                headerWriter.WriteNetworkObjectId(nob.CurrentParentNetworkObject);
+
             /* Writing a scene object. */
             if (sceneObject)
             {
@@ -310,7 +306,7 @@ namespace FishNet.Managing.Object
                 return false;
             }
             //Nested nobs not yet supported.
-            if (nob.NestedRootNetworkBehaviours.Count > 0)
+            if (nob.ChildNetworkObjects.Count > 0)
             {
                 if (asServer)
                     spawner.Kick(KickReason.ExploitAttempt, LoggingType.Common, $"Connection {spawner.ClientId} tried to spawn an object {nob.name} which has nested NetworkObjects.");
@@ -361,7 +357,7 @@ namespace FishNet.Managing.Object
                 return false;
             }
             //Nested nobs not yet supported.
-            if (nob.NestedRootNetworkBehaviours.Count > 0)
+            if (nob.ChildNetworkObjects.Count > 0)
             {
                 if (asServer)
                     despawner.Kick(KickReason.ExploitAttempt, LoggingType.Common, $"Connection {despawner.ClientId} tried to despawn an object {nob.name} which has nested NetworkObjects.");

@@ -1,5 +1,5 @@
 ﻿using FishNet.Utility.Extension;
-using GameKit.Dependencies.Utilities;
+using GameKit.Utilities;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -110,9 +110,9 @@ namespace FishNet.Object.Prediction
             NetworkObject nob = _smoothingData.NetworkObject;
             if (nob == null)
                 return false;
-            if (nob.IsServerOnlyStarted)
+            if (nob.IsServerOnly)
                 return false;
-            if (!nob.IsHostStarted && nob.SpectatorAdaptiveInterpolation && !nob.IsOwner)
+            if (!nob.IsHost && nob.SpectatorAdaptiveInterpolation && !nob.IsOwner)
                 return false;
 
             return true;

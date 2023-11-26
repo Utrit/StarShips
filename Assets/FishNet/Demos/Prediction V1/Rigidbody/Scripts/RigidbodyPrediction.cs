@@ -157,7 +157,7 @@ namespace FishNet.Example.Prediction.Rigidbodies
         {
             /* Server does not replay so it does
              * not need to add gravity. */
-            if (!base.IsServerInitialized)
+            if (!base.IsServer)
                 AddGravity();
         }
 
@@ -173,7 +173,7 @@ namespace FishNet.Example.Prediction.Rigidbodies
                 TryDespawnBullet();
                 TrySpawnBullet();
             }
-            if (base.IsServerInitialized)
+            if (base.IsServer)
             {
                 Move(default, true);
             }
@@ -190,7 +190,7 @@ namespace FishNet.Example.Prediction.Rigidbodies
         {
             /* Reconcile is sent during PostTick because we
              * want to send the rb data AFTER the simulation. */
-            if (base.IsServerInitialized)
+            if (base.IsServer)
             {
                 ReconcileData rd = new ReconcileData(transform.position, transform.rotation, _rigidbody.velocity, _rigidbody.angularVelocity);
                 Reconciliation(rd, true);

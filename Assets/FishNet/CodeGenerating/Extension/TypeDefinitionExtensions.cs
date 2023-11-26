@@ -41,7 +41,6 @@ namespace FishNet.CodeGenerating.Extension
             if (baseMd == null)
                 return null;
 
-
             MethodReference baseMr;
             TypeReference baseTr = td.BaseType;
             if (baseTr.CachedResolve(session).HasGenericParameters)
@@ -266,15 +265,6 @@ namespace FishNet.CodeGenerating.Extension
             return fd.CreateFieldReference(session);
         }
 
-
-        /// <summary>
-        /// Makes a GenericInstanceType.
-        /// </summary>
-        public static GenericInstanceType MakeGenericInstanceType(this TypeDefinition self, CodegenSession session)
-        {
-            TypeReference tr = session.ImportReference(self);
-            return tr.MakeGenericInstanceType();
-        }
 
 
     }

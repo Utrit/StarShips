@@ -1,7 +1,7 @@
 ﻿using FishNet.Broadcast;
 using FishNet.Serializing;
 using FishNet.Utility.Performance;
-using GameKit.Dependencies.Utilities;
+using GameKit.Utilities;
 using System.Collections.Generic;
 
 namespace FishNet.Managing.Server

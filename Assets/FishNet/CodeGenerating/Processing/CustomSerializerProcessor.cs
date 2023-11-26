@@ -37,7 +37,7 @@ namespace FishNet.CodeGenerating.Processing
                 ExtensionType extensionType = GetExtensionType(methodDef);
                 if (extensionType == ExtensionType.None)
                     continue;
-                if (base.GetClass<GeneralHelper>().HasNotSerializableAttribute(methodDef))
+                if (base.GetClass<GeneralHelper>().CodegenExclude(methodDef))
                     continue;
 
                 MethodReference methodRef = base.ImportReference(methodDef);
@@ -75,7 +75,7 @@ namespace FishNet.CodeGenerating.Processing
                 ExtensionType extensionType = GetExtensionType(methodDef);
                 if (extensionType == ExtensionType.None)
                     continue;
-                if (base.GetClass<GeneralHelper>().HasNotSerializableAttribute(methodDef))
+                if (base.GetClass<GeneralHelper>().CodegenExclude(methodDef))
                     continue;
 
                 declaredMethods.Add((methodDef, extensionType));
@@ -116,7 +116,7 @@ namespace FishNet.CodeGenerating.Processing
              * isn't made for a type when the user has already made a declared one. */
             foreach (MethodDefinition methodDef in typeDef.Methods)
             {
-                if (gh.HasNotSerializableAttribute(methodDef))
+                if (gh.CodegenExclude(methodDef))
                     continue;
                 if (!methodDef.HasCustomAttribute<CustomComparerAttribute>())
                     continue;

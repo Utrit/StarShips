@@ -5,8 +5,8 @@ using FishNet.Managing.Server;
 using FishNet.Object;
 using FishNet.Serializing.Helping;
 using FishNet.Transporting;
-using GameKit.Dependencies.Utilities;
-using GameKit.Dependencies.Utilities.Types;
+using GameKit.Utilities;
+using GameKit.Utilities.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -295,7 +295,7 @@ namespace FishNet.Managing.Scened
         /// <param name="arg0"></param>
         private void SceneManager_SceneUnloaded(Scene scene)
         {
-            if (!NetworkManager.IsServerStarted)
+            if (!NetworkManager.IsServer)
                 return;
 
             /* Remove any unloaded scenes from local variables. This shouldn't
@@ -362,7 +362,7 @@ namespace FishNet.Managing.Scened
         /// <summary>
         /// Received on client when the server has no start scenes.
         /// </summary>
-        private void OnClientEmptyStartScenes(EmptyStartScenesBroadcast msg, Channel channel)
+        private void OnClientEmptyStartScenes(EmptyStartScenesBroadcast msg)
         {
             TryInvokeLoadedStartScenes(_clientManager.Connection, false);
             _clientManager.Broadcast(msg);
@@ -370,13 +370,13 @@ namespace FishNet.Managing.Scened
         /// <summary>
         /// Received on server when client confirms there are no start scenes.
         /// </summary>
-        private void OnServerEmptyStartScenes(NetworkConnection conn, EmptyStartScenesBroadcast msg, Channel channel)
+        private void OnServerEmptyStartScenes(NetworkConnection conn, EmptyStartScenesBroadcast msg)
         {
             //Already received, shouldn't be happening again.
             if (conn.LoadedStartScenes(true))
                 conn.Kick(KickReason.ExploitAttempt, LoggingType.Common, $"Received multiple EmptyStartSceneBroadcast from connectionId {conn.ClientId}. Connection will be kicked immediately.");
             else
-                OnClientLoadedScenes(conn, new ClientScenesLoadedBroadcast(), channel);
+                OnClientLoadedScenes(conn, new ClientScenesLoadedBroadcast());
         }
         #endregion
 
@@ -427,7 +427,7 @@ namespace FishNet.Managing.Scened
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="msg"></param>
-        private void OnClientLoadedScenes(NetworkConnection conn, ClientScenesLoadedBroadcast msg, Channel channel)
+        private void OnClientLoadedScenes(NetworkConnection conn, ClientScenesLoadedBroadcast msg)
         {
             int pendingLoads;
             _pendingClientSceneChanges.TryGetValueIL2CPP(conn, out pendingLoads);
@@ -703,6 +703,11 @@ namespace FishNet.Managing.Scened
         {
             LoadGlobalScenes_Internal(sceneLoadData, _globalScenes, true);
         }
+        /// <summary>
+        /// Adds to load scene queue.
+        /// </summary>
+        /// <param name="sceneLoadData"></param>
+        /// <param name="asServer"></param>
         private void LoadGlobalScenes_Internal(SceneLoadData sceneLoadData, string[] globalScenes, bool asServer)
         {
             if (!CanExecute(asServer, true))
@@ -745,6 +750,12 @@ namespace FishNet.Managing.Scened
         {
             LoadConnectionScenes_Internal(Array.Empty<NetworkConnection>(), sceneLoadData, _globalScenes, true);
         }
+
+        /// <summary>
+        /// Adds to load scene queue.
+        /// </summary>
+        /// <param name="sceneLoadData"></param>
+        /// <param name="asServer"></param>
         private void LoadConnectionScenes_Internal(NetworkConnection[] conns, SceneLoadData sceneLoadData, string[] globalScenes, bool asServer)
         {
             if (!CanExecute(asServer, true))
@@ -806,7 +817,7 @@ namespace FishNet.Managing.Scened
                 //True if running as server.
                 bool asServer = data.AsServer;
                 //True if running as client, while network server is active.
-                bool asHost = (!asServer && NetworkManager.IsServerStarted);
+                bool asHost = (!asServer && NetworkManager.IsServer);
 
                 //If connection went inactive.
                 if (!ConnectionActive(asServer))
@@ -853,7 +864,6 @@ namespace FishNet.Managing.Scened
                         int index = _globalScenes.Length;
                         Array.Resize(ref _globalScenes, _globalScenes.Length + names.Length);
                         Array.Copy(names, 0, _globalScenes, index, names.Length);
-
                     }
                     CheckForDuplicateGlobalSceneNames();
                     data.GlobalScenes = _globalScenes;
@@ -1026,7 +1036,7 @@ namespace FishNet.Managing.Scened
 
                 /* Start event. */
                 InvokeOnSceneLoadStart(data);
-                if (unloadableScenes.Count > 0 || loadableScenes.Count > 0)
+                if (unloadableScenes.Count > 0 || loadableScenes.Count > 0)                   
                     _sceneProcessor.LoadStart(data);
                 //Unloaded scenes by name. Only used for information within callbacks.
                 string[] unloadedNames = new string[unloadableScenes.Count];
@@ -1220,7 +1230,7 @@ namespace FishNet.Managing.Scened
                          * Do not set preferred scene if server as this could cause
                          * problems when stacking or connection specific scenes. Let the
                          * user make those changes. */
-                        if (sceneLoadData.ReplaceScenes != ReplaceOption.None && data.ScopeType == SceneScopeType.Connections && !NetworkManager.IsServerStarted)
+                        if (sceneLoadData.ReplaceScenes != ReplaceOption.None && data.ScopeType == SceneScopeType.Connections && !NetworkManager.IsServer)
                             preferredActiveScene = sceneLoadData.GetFirstLookupScene();
                     }
 
@@ -1257,7 +1267,7 @@ namespace FishNet.Managing.Scened
                  * active then send scene changes to client.
                  * Making sure server is still active should it maybe
                  * have dropped during scene loading. */
-                if (data.AsServer && NetworkManager.IsServerStarted)
+                if (data.AsServer && NetworkManager.IsServer)
                 {
                     //Tell clients to load same scenes.
                     LoadScenesBroadcast msg = new LoadScenesBroadcast()
@@ -1288,7 +1298,7 @@ namespace FishNet.Managing.Scened
                  * to the server to tell them the scene was loaded.
                  * This allows the server to add the client
                  * to the scene for checkers. */
-                else if (!data.AsServer && NetworkManager.IsClientStarted)
+                else if (!data.AsServer && NetworkManager.IsClient)
                 {
                     //Remove from old scenes.
                     foreach (Scene item in unloadableScenes)
@@ -1322,7 +1332,7 @@ namespace FishNet.Managing.Scened
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="msg"></param>
-        private void OnLoadScenes(LoadScenesBroadcast msg, Channel channel)
+        private void OnLoadScenes(LoadScenesBroadcast msg)
         {
             //Null data is sent by the server when there are no start scenes to load.
             if (msg.QueueData == null)
@@ -1377,7 +1387,6 @@ namespace FishNet.Managing.Scened
         {
             UnloadConnectionScenes_Internal(connections, sceneUnloadData, _globalScenes, true);
         }
-
         /// <summary>
         /// Unloads scenes on server without telling any connections to unload them.
         /// </summary>
@@ -1396,6 +1405,7 @@ namespace FishNet.Managing.Scened
             UnloadQueueData uqd = new UnloadQueueData(SceneScopeType.Connections, connections, sceneUnloadData, globalScenes, asServer);
             QueueOperation(uqd);
         }
+
         /// <summary>
         /// Loads scenes within QueuedSceneLoads.
         /// </summary>
@@ -1411,7 +1421,7 @@ namespace FishNet.Managing.Scened
 
             /* Some actions should not run as client if server is also active.
             * This is to keep things from running twice. */
-            bool asClientHost = (!data.AsServer && NetworkManager.IsServerStarted);
+            bool asClientHost = (!data.AsServer && NetworkManager.IsServer);
             ///True if running asServer.
             bool asServer = data.AsServer;
 
@@ -1452,8 +1462,6 @@ namespace FishNet.Managing.Scened
                         RemoveConnectionsFromScene(data.Connections, s);
                 }
             }
-
-
 
             /* This will contain all scenes which can be unloaded.
              * The collection will be modified through various checks. */
@@ -1501,7 +1509,6 @@ namespace FishNet.Managing.Scened
                      * but removing is one call vs checking
                     * then removing. */
                     _manualUnloadScenes.Remove(s);
-
                     _sceneProcessor.BeginUnloadAsync(s);
                     while (!_sceneProcessor.IsPercentComplete())
                         yield return null;
@@ -1570,7 +1577,7 @@ namespace FishNet.Managing.Scened
         /// </summary>
         /// <param name="conn"></param>
         /// <param name="msg"></param>
-        private void OnUnloadScenes(UnloadScenesBroadcast msg, Channel channel)
+        private void OnUnloadScenes(UnloadScenesBroadcast msg)
         {
             UnloadQueueData qd = msg.QueueData;
             if (qd.ScopeType == SceneScopeType.Global)
@@ -1595,7 +1602,7 @@ namespace FishNet.Managing.Scened
             if (!asServer)
                 return;
             //Don't need to perform if not host.
-            if (!NetworkManager.IsClientStarted)
+            if (!NetworkManager.IsClient)
                 return;
 
             NetworkConnection clientConn = NetworkManager.ClientManager.Connection;
@@ -2019,6 +2026,7 @@ namespace FishNet.Managing.Scened
         }
         #endregion
 
+
         /// <summary>
         /// Returns if GlobalScenes contains scene.
         /// </summary>
@@ -2032,9 +2040,9 @@ namespace FishNet.Managing.Scened
                 if (item == scene.name || nameOnly == scene.name)
                     return true;
             }
+
             return false;
         }
-
 
         /// <summary>
         /// Warns if any scene names in GlobalScenes are unsupported.
@@ -2042,7 +2050,7 @@ namespace FishNet.Managing.Scened
         /// </summary>
         private void CheckForDuplicateGlobalSceneNames()
         {
-            /* This is being removed between version 4.0.0 to 4.1.0 */
+#if FISHNET_V3
             HashSet<string> namesOnly = CollectionCaches<string>.RetrieveHashSet();
             foreach (string item in _globalScenes)
             {
@@ -2057,6 +2065,7 @@ namespace FishNet.Managing.Scened
                     namesOnly.Add(name);
                 }
             }
+#endif
         }
 
 
@@ -2285,7 +2294,7 @@ namespace FishNet.Managing.Scened
         /// <returns></returns>
         private bool ConnectionActive(bool asServer)
         {
-            return (asServer) ? NetworkManager.IsServerStarted : NetworkManager.IsClientStarted;
+            return (asServer) ? NetworkManager.IsServer : NetworkManager.IsClient;
         }
         /// <summary>
         /// Returns if a method can execute.
@@ -2298,13 +2307,13 @@ namespace FishNet.Managing.Scened
             bool result;
             if (asServer)
             {
-                result = NetworkManager.IsServerStarted;
+                result = NetworkManager.IsServer;
                 if (!result && warn)
                     NetworkManager.LogWarning($"Method cannot be called as the server is not active.");
             }
             else
             {
-                result = NetworkManager.IsClientStarted;
+                result = NetworkManager.IsClient;
                 if (!result && warn)
                     NetworkManager.LogWarning($"Method cannot be called as the client is not active.");
             }

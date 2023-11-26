@@ -1,4 +1,3 @@
-using FishNet.CodeGenerating;
 using FishNet.Connection;
 using FishNet.Documenting;
 using FishNet.Managing;
@@ -8,7 +7,7 @@ using FishNet.Serializing.Helping;
 using FishNet.Transporting;
 using FishNet.Utility.Constant;
 using FishNet.Utility.Performance;
-using GameKit.Dependencies.Utilities;
+using GameKit.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -192,7 +191,18 @@ namespace FishNet.Serializing
         /// <summary>
         /// Reads a dictionary.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Obsolete("Use ReadDictionaryAllocated.")] //Remove on 2023/06/01
+        public Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>()
+        {
+            return ReadDictionaryAllocated<TKey, TValue>();
+        }
+
+        /// <summary>
+        /// Reads a dictionary.
+        /// </summary>
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Dictionary<TKey, TValue> ReadDictionaryAllocated<TKey, TValue>()
         {
@@ -217,7 +227,7 @@ namespace FishNet.Serializing
         /// <summary>
         /// Reads length. This method is used to make debugging easier.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int ReadLength()
         {
@@ -227,7 +237,7 @@ namespace FishNet.Serializing
         /// <summary>
         /// Reads a packetId.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal PacketId ReadPacketId()
         {
@@ -238,7 +248,7 @@ namespace FishNet.Serializing
         /// Returns a ushort without advancing the reader.
         /// </summary>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal PacketId PeekPacketId()
         {
@@ -261,7 +271,7 @@ namespace FishNet.Serializing
         /// Skips a number of bytes in the reader.
         /// </summary>
         /// <param name="value">Number of bytes to skip.</param>
-        [NotSerializer]
+        [CodegenExclude]
         public void Skip(int value)
         {
             if (value < 1 || Remaining < value)
@@ -272,7 +282,7 @@ namespace FishNet.Serializing
         /// <summary>
         /// Clears remaining bytes to be read.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
@@ -336,7 +346,7 @@ namespace FishNet.Serializing
         /// </summary>
         /// <param name="buffer">Buffer to read bytes into.</param>
         /// <param name="count">Number of bytes to read.</param>
-        [NotSerializer]
+        [CodegenExclude]
         public void ReadBytes(ref byte[] buffer, int count)
         {
             if (buffer == null)
@@ -353,7 +363,7 @@ namespace FishNet.Serializing
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ArraySegment<byte> ReadArraySegment(int count)
         {
@@ -562,7 +572,7 @@ namespace FishNet.Serializing
         /// Reads bytes and size and copies results into target. Returns UNSET if null was written.
         /// </summary>
         /// <returns>Bytes read.</returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadBytesAndSize(ref byte[] target)
         {
@@ -779,7 +789,7 @@ namespace FishNet.Serializing
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte[] ReadBytesAllocated(int count)
         {
@@ -804,7 +814,7 @@ namespace FishNet.Serializing
         /// <summary>
         /// Reads a tick without packing.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint ReadTickUnpacked()
         {
@@ -875,7 +885,7 @@ namespace FishNet.Serializing
         /// </summary>
         /// <param name="readSpawningObjects">Objects which have been read to be spawned this tick, but may not have spawned yet.</param>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NetworkObject ReadNetworkObject(out int objectOrPrefabId, HashSet<int> readSpawningObjects = null)
         {
@@ -942,7 +952,7 @@ namespace FishNet.Serializing
         /// Reads a NetworkObjectId and nothing else.
         /// </summary>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadNetworkObjectId()
         {
@@ -953,7 +963,7 @@ namespace FishNet.Serializing
         /// Reads the Id for a NetworkObject and outputs spawn settings.
         /// </summary>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int ReadNetworkObjectForSpawn(out sbyte initializeOrder, out ushort collectionid, out bool spawned)
         {
@@ -980,7 +990,7 @@ namespace FishNet.Serializing
         /// Reads the Id for a NetworkObject and outputs despawn settings.
         /// </summary>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int ReadNetworkObjectForDepawn(out DespawnType dt)
         {
@@ -994,7 +1004,7 @@ namespace FishNet.Serializing
         /// Reads a NetworkBehaviourId and ObjectId.
         /// </summary>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal byte ReadNetworkBehaviourId(out int objectId)
         {
@@ -1010,7 +1020,7 @@ namespace FishNet.Serializing
         /// </summary>
         /// <param name="readSpawningObjects">Objects which have been read to be spawned this tick, but may not have spawned yet.</param>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NetworkBehaviour ReadNetworkBehaviour(out int objectId, out byte componentIndex, HashSet<int> readSpawningObjects = null)
         {
@@ -1077,7 +1087,7 @@ namespace FishNet.Serializing
         /// Reads the Id for a NetworkConnection.
         /// </summary>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadNetworkConnectionId()
         {
@@ -1099,7 +1109,7 @@ namespace FishNet.Serializing
             else
             {
                 //Prefer server.
-                if (NetworkManager.IsServerStarted)
+                if (NetworkManager.IsServer)
                 {
                     NetworkConnection result;
                     if (NetworkManager.ServerManager.Clients.TryGetValueIL2CPP(value, out result))
@@ -1107,7 +1117,7 @@ namespace FishNet.Serializing
                         return result;
                     }
                     //If also client then try client side data.
-                    else if (NetworkManager.IsClientStarted)
+                    else if (NetworkManager.IsClient)
                     {
                         //If found in client collection then return.
                         if (NetworkManager.ClientManager.Clients.TryGetValueIL2CPP(value, out result))
@@ -1176,7 +1186,7 @@ namespace FishNet.Serializing
         /// Writes a state update packet.
         /// </summary>
         /// <param name="tick"></param>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void ReadStateUpdatePacket(out uint clientTick)
         {
@@ -1197,7 +1207,7 @@ namespace FishNet.Serializing
         /// <summary>
         /// Reads a packed whole number.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadPackedWhole()
         {
@@ -1252,7 +1262,7 @@ namespace FishNet.Serializing
         /// <summary>
         /// Reads a replicate into collection and returns item count read.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int ReadReplicate<T>(ref T[] collection, uint tick) where T : IReplicateData
         {
@@ -1331,9 +1341,33 @@ namespace FishNet.Serializing
         }
 
         /// <summary>
+        /// Reads a ListCache with allocations.
+        /// </summary>
+        [CodegenExclude]  //Remove on 2024/01/01.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#pragma warning disable CS0618 // Type or member is obsolete
+        public ListCache<T> ReadListCacheAllocated<T>()
+        {
+            List<T> lst = ReadListAllocated<T>();
+            ListCache<T> lc = new ListCache<T>();
+            lc.Collection = lst;
+            return lc;
+        }
+        /// <summary>
+        /// Reads a ListCache and returns the item count read.
+        /// </summary>
+        [CodegenExclude]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]  //Remove on 2024/01/01.
+        public int ReadListCache<T>(ref ListCache<T> listCache)
+        {
+            listCache.Collection = ReadListAllocated<T>();
+            return listCache.Collection.Count;
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
+        /// <summary>
         /// Reads a list with allocations.
         /// </summary>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<T> ReadListAllocated<T>()
         {
@@ -1348,7 +1382,7 @@ namespace FishNet.Serializing
         /// <param name="collection"></param>
         /// <param name="allowNullification">True to allow the referenced collection to be nullified when receiving a null collection read.</param>
         /// <returns>Number of values read into the collection. UNSET is returned if the collection were read as null.</returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadList<T>(ref List<T> collection, bool allowNullification = false)
         {
@@ -1378,7 +1412,7 @@ namespace FishNet.Serializing
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] ReadArrayAllocated<T>()
         {
@@ -1392,7 +1426,7 @@ namespace FishNet.Serializing
         /// <typeparam name="T"></typeparam>
         /// <param name="collection"></param>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadArray<T>(ref T[] collection)
         {
@@ -1428,7 +1462,7 @@ namespace FishNet.Serializing
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        [NotSerializer]
+        [CodegenExclude]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Read<T>()
         {

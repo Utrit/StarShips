@@ -9,6 +9,7 @@ using MonoFN.Cecil.Cil;
 using MonoFN.Collections.Generic;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace FishNet.CodeGenerating.Processing
 {
@@ -28,7 +29,13 @@ namespace FishNet.CodeGenerating.Processing
         internal const string NETWORKINITIALIZE_LATE_INTERNAL_NAME = "NetworkInitialize__Late";
         #endregion
 
-        internal bool ProcessLocal(TypeDefinition typeDef)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="typeDef"></param>
+        /// <param name="processedSyncs">SyncTypes processed for typeDef and inherited.</param>
+        /// <returns></returns>
+        internal bool ProcessLocal(TypeDefinition typeDef, List<(SyncType, ProcessedSync)> processedSyncs)
         {
             bool modified = false;
             TypeDefinition copyTypeDef = typeDef;
@@ -71,7 +78,6 @@ namespace FishNet.CodeGenerating.Processing
             * as well error if the awake does not exist, such as could not be created. */
             typeDefs.Reverse();
 
-            uint declaredSyncTypes = 0;
             foreach (TypeDefinition td in typeDefs)
             {
                 /* Create NetworkInitialize before-hand so the other procesors
@@ -102,7 +108,7 @@ namespace FishNet.CodeGenerating.Processing
                  * each registers to their own delegates this is possible. */
 
                 /* SyncTypes. */
-                modified |= base.GetClass<SyncTypeProcessor>().ProcessLocal(td, ref declaredSyncTypes);
+                modified |= base.GetClass<NetworkBehaviourSyncProcessor>().ProcessLocal(td, processedSyncs);
 
                 //Call base networkinitialize early/late.
                 CallBaseOnNetworkInitializeMethods(td);
@@ -136,9 +142,9 @@ namespace FishNet.CodeGenerating.Processing
                 _processedClasses.Add(td);
             }
 
-            if (declaredSyncTypes > NetworkBehaviourHelper.MAX_SYNCTYPE_ALLOWANCE)
+            if (processedSyncs.Count > NetworkBehaviourHelper.MAX_SYNCTYPE_ALLOWANCE)
             {
-                base.LogError($"Found {declaredSyncTypes} SyncTypes within {typeDef.FullName} and inherited classes. The maximum number of allowed SyncTypes within type and inherited types is {NetworkBehaviourHelper.MAX_SYNCTYPE_ALLOWANCE}. Remove SyncTypes or condense them using data containers, or a custom SyncObject.");
+                base.LogError($"Found {processedSyncs.Count} SyncTypes within {typeDef.FullName} and inherited classes. The maximum number of allowed SyncTypes within type and inherited types is {NetworkBehaviourHelper.MAX_SYNCTYPE_ALLOWANCE}. Remove SyncTypes or condense them using data containers, or a custom SyncObject.");
                 return false;
             }
 
@@ -154,7 +160,6 @@ namespace FishNet.CodeGenerating.Processing
         /// Gets the name to use for user awake logic method.
         /// </summary>
         internal string GetAwakeUserLogicMethodDefinition(TypeDefinition td) => $"Awake_UserLogic_{td.FullName}_{base.Module.Name}";
-
 
         /// <summary>
         /// Returns if a class has been processed.
@@ -173,7 +178,7 @@ namespace FishNet.CodeGenerating.Processing
         /// <returns></returns>
         internal bool NonNetworkBehaviourHasInvalidAttributes(Collection<TypeDefinition> typeDefs)
         {
-            SyncTypeProcessor stProcessor = base.GetClass<SyncTypeProcessor>();
+            NetworkBehaviourSyncProcessor nbSyncProcessor = base.GetClass<NetworkBehaviourSyncProcessor>();
             RpcProcessor rpcProcessor = base.GetClass<RpcProcessor>();
 
             foreach (TypeDefinition typeDef in typeDefs)
@@ -195,7 +200,7 @@ namespace FishNet.CodeGenerating.Processing
                 //Check fields for attribute.
                 foreach (FieldDefinition fd in typeDef.Fields)
                 {
-                    if (stProcessor.IsSyncType(fd))
+                    if (nbSyncProcessor.IsSyncType(fd))
                     {
                         base.LogError($"{typeDef.FullName} implements one or more SyncTypes but does not inherit from NetworkBehaviour.");
                         return true;
@@ -220,7 +225,6 @@ namespace FishNet.CodeGenerating.Processing
             if (!td.CanProcessBaseType(base.Session))
                 return;
 
-            //Base Awake.
             MethodReference baseAwakeMr = td.GetMethodReferenceInBase(base.Session, NetworkBehaviourHelper.AWAKE_METHOD_NAME);
             //This Awake.
             MethodDefinition tdAwakeMd = td.GetMethod(NetworkBehaviourHelper.AWAKE_METHOD_NAME);
@@ -336,10 +340,10 @@ namespace FishNet.CodeGenerating.Processing
                 {
                     //Create instructions for base call.
                     List<Instruction> instructions = new List<Instruction>
-                            {
-                                processor.Create(OpCodes.Ldarg_0), //this.
-                                processor.Create(OpCodes.Call, baseMr)
-                            };
+                    {
+                        processor.Create(OpCodes.Ldarg_0), //this.
+                        processor.Create(OpCodes.Call, baseMr)
+                    };
                     processor.InsertFirst(instructions);
                 }
             }
@@ -543,7 +547,6 @@ namespace FishNet.CodeGenerating.Processing
 
             processor.InsertFirst(instructions);
         }
-
 
 
     }

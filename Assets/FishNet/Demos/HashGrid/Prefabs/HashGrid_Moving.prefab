@@ -127,42 +127,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NetworkObserver: {fileID: 0}
-  _preconfiguredSmoothingDataPreview:
-    NormalPercent: 0.625
-    CollisionPercent: 0.0625
-    CollisionStep: 1
-    NormalStep: 0.25
   <PrefabId>k__BackingField: 0
   <SpawnableCollectionId>k__BackingField: 0
   _scenePathHash: 0
   <SceneId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 11406911356865610645
   <IsNested>k__BackingField: 0
-  _enablePrediction: 0
-  _predictionType: 0
-  _graphicalObject: {fileID: 0}
-  _enableStateForwarding: 1
-  _ownerInterpolation: 1
-  _enableTeleport: 0
-  _ownerTeleportThreshold: 1
-  _spectatorAdaptiveInterpolation: 0
-  _spectatorInterpolation: 1
-  _adaptiveSmoothingType: 0
-  _customSmoothingData:
-    NormalPercent: 1.25
-    CollisionPercent: 0.125
-    CollisionStep: 0.75
-    NormalStep: 0.25
   <ComponentIndex>k__BackingField: 0
   <PredictedSpawn>k__BackingField: {fileID: 0}
-  _networkBehaviours:
-  - {fileID: 4670340455971777434}
+  _networkBehaviours: []
   <ParentNetworkObject>k__BackingField: {fileID: 0}
   <ChildNetworkObjects>k__BackingField: []
   SerializedTransformProperties:
     Position: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 1}
-    LocalScale: {x: 3, y: 3, z: 3}
+    Rotation: {x: 0, y: 0, z: 0, w: 0}
+    LocalScale: {x: 0, y: 0, z: 0}
   _isNetworked: 1
   _isGlobal: 0
   _initializeOrder: 0
@@ -179,7 +158,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10f399a5388d3b3459b7a8476ae13e6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _componentIndexCache: 0
+  _componentIndexCache: 255
   _addedNetworkObject: {fileID: 4512293259955182956}
-  _networkObjectCache: {fileID: 4512293259955182956}
-  _renderer: {fileID: 2529588038898116402}
+  _networkObjectCache: {fileID: 0}
+  _renderer: {fileID: 0}

@@ -1,5 +1,4 @@
-﻿using FishNet.CodeGenerating;
-using FishNet.Connection;
+﻿using FishNet.Connection;
 using FishNet.Documenting;
 using FishNet.Managing.Logging;
 using FishNet.Managing.Transporting;
@@ -7,7 +6,7 @@ using FishNet.Object.Delegating;
 using FishNet.Serializing;
 using FishNet.Serializing.Helping;
 using FishNet.Transporting;
-using GameKit.Dependencies.Utilities;
+using GameKit.Utilities;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -90,7 +89,7 @@ namespace FishNet.Object
         /// <param name="hash"></param>
         /// <param name="del"></param>
         [APIExclude]
-        [MakePublic]
+        [CodegenMakePublic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void RegisterServerRpc(uint hash, ServerRpcDelegate del)
         {
@@ -110,7 +109,7 @@ namespace FishNet.Object
         /// <param name="hash"></param>
         /// <param name="del"></param>
         [APIExclude]
-        [MakePublic]
+        [CodegenMakePublic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void RegisterObserversRpc(uint hash, ClientRpcDelegate del)
         {
@@ -130,7 +129,7 @@ namespace FishNet.Object
         /// <param name="hash"></param>
         /// <param name="del"></param>
         [APIExclude]
-        [MakePublic]
+        [CodegenMakePublic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void RegisterTargetRpc(uint hash, ClientRpcDelegate del)
         {
@@ -235,7 +234,7 @@ namespace FishNet.Object
         /// <param name="hash"></param>
         /// <param name="methodWriter"></param>
         /// <param name="channel"></param>
-        [MakePublic]
+        [CodegenMakePublic]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void SendServerRpc(uint hash, PooledWriter methodWriter, Channel channel, DataOrderType orderType)
         {
@@ -256,7 +255,7 @@ namespace FishNet.Object
         /// <param name="methodWriter"></param>
         /// <param name="channel"></param>
         [APIExclude]
-        [MakePublic] //Make internal.
+        [CodegenMakePublic] //Make internal.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void SendObserversRpc(uint hash, PooledWriter methodWriter, Channel channel, DataOrderType orderType, bool bufferLast, bool excludeServer, bool excludeOwner)
         {
@@ -297,7 +296,7 @@ namespace FishNet.Object
         /// <summary>
         /// Sends a RPC to target.
         /// </summary>
-        [MakePublic] //Make internal.
+        [CodegenMakePublic] //Make internal.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void SendTargetRpc(uint hash, PooledWriter methodWriter, Channel channel, DataOrderType orderType, NetworkConnection target, bool excludeServer, bool validateTarget = true)
         {
@@ -349,7 +348,7 @@ namespace FishNet.Object
         private void SetNetworkConnectionCache(bool addClientHost, bool addOwner)
         {
             _networkConnectionCache.Clear();
-            if (addClientHost && IsClientStarted)
+            if (addClientHost && IsClient)
                 _networkConnectionCache.Add(LocalConnection);
             if (addOwner && Owner.IsValid)
                 _networkConnectionCache.Add(Owner);

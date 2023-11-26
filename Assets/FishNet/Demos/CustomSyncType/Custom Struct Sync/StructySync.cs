@@ -1,5 +1,4 @@
-﻿using FishNet.CodeGenerating;
-using FishNet.Documenting;
+﻿using FishNet.Documenting;
 using FishNet.Object.Synchronizing;
 using FishNet.Object.Synchronizing.Internal;
 using FishNet.Serializing;
@@ -96,9 +95,9 @@ namespace FishNet.Example.CustomSyncObject
         private Structy _lastDirtied = new Structy();
         #endregion
 
-        protected override void Initialized()
+        protected override void Registered()
         {
-            base.Initialized();
+            base.Registered();
             _initialValue = Value;
         }
 
@@ -111,10 +110,10 @@ namespace FishNet.Example.CustomSyncObject
         /// <param name="next"></param>
         private void AddOperation(CustomOperation operation, Structy prev, Structy next)
         {
-            if (!base.IsInitialized)
+            if (!base.IsRegistered)
                 return;
 
-            if (base.NetworkManager != null && !base.NetworkBehaviour.IsServerStarted)
+            if (base.NetworkManager != null && !base.NetworkBehaviour.IsServer)
             {
                 NetworkManager.LogWarning($"Cannot complete operation as server when server is not active.");
                 return;
@@ -141,7 +140,7 @@ namespace FishNet.Example.CustomSyncObject
         /// </summary>
         /// <param name="writer"></param>
         ///<param name="resetSyncTick">True to set the next time data may sync.</param>
-        internal protected override void WriteDelta(PooledWriter writer, bool resetSyncTick = true)
+        public override void WriteDelta(PooledWriter writer, bool resetSyncTick = true)
         {
             base.WriteDelta(writer, resetSyncTick);
             writer.WriteInt32(_changed.Count);
@@ -169,7 +168,7 @@ namespace FishNet.Example.CustomSyncObject
         /// Writes all values if not initial values.
         /// </summary>
         /// <param name="writer"></param>
-        internal protected override void WriteFull(PooledWriter writer)
+        public override void WriteFull(PooledWriter writer)
         {
             if (!_valuesChanged)
                 return;
@@ -188,13 +187,13 @@ namespace FishNet.Example.CustomSyncObject
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [APIExclude]
-        internal protected override void Read(PooledReader reader, bool asServer)
+        public override void Read(PooledReader reader, bool asServer)
         {
             /* When !asServer don't make changes if server is running.
             * This is because changes would have already been made on
             * the server side and doing so again would result in duplicates
             * and potentially overwrite data not yet sent. */
-            bool asClientAndHost = (!asServer && base.NetworkManager.IsServerStarted);
+            bool asClientAndHost = (!asServer && base.NetworkManager.IsServer);
 
             int changes = reader.ReadInt32();
             for (int i = 0; i < changes; i++)
@@ -240,7 +239,7 @@ namespace FishNet.Example.CustomSyncObject
         /// <summary>
         /// Resets to initialized values.
         /// </summary>
-        internal protected override void ResetState()
+        public override void ResetState()
         {
             base.ResetState();
             _changed.Clear();
