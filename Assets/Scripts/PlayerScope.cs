@@ -1,16 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using FishNet.Object;
+using NaughtyAttributes;
 using UnityEngine;
 
 public class PlayerScope : NetworkBehaviour
 {
+    [SerializeField] private float _movementSpeed;
+    [SerializeField] private Rigidbody _rigidbody;
     private Camera _playerCamera;
     
     public override void OnStartClient()
     {
-        base.OnStartClient();
-        Debug.Log(IsOwner);
         if (IsOwner)
         {
             _playerCamera = Camera.main;
@@ -28,9 +29,16 @@ public class PlayerScope : NetworkBehaviour
 
     void Update()
     {
-        var dir = Input.GetAxis("Horizontal") * Vector3.right;
-        dir += Input.GetAxis("Vertical") * Vector3.forward;
+        var dir = Input.GetAxis("Vertical") * transform.forward;
+        var rotation = Input.GetAxis("Horizontal");
         dir.Normalize();
-        transform.position += dir * Time.deltaTime;
+        _rigidbody.AddForce(dir * (Time.deltaTime * _movementSpeed),ForceMode.Acceleration);
+        _rigidbody.AddTorque(0,rotation*Time.deltaTime*60f,0);
+    }
+
+    [Button]
+    private void FindRefs()
+    {
+        _rigidbody = GetComponent<Rigidbody>();
     }
 }
